@@ -9,13 +9,19 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    gamewidget.cpp \
-    main.cpp \
-    mainwindow.cpp
+    src/blob.cpp \
+    src/camera.cpp \
+    src/gamewidget.cpp \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/shaderprogram.cpp
 
 HEADERS += \
-    gamewidget.h \
-    mainwindow.h
+    include/blob.h \
+    include/gamewidget.h \
+    include/mainwindow.h \
+    include/shaderprogram.h \
+    source/camera.h
 
 FORMS += \
     mainwindow.ui
@@ -24,3 +30,7 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    shaders/basicShader.frag \
+    shaders/basicShader.vert
