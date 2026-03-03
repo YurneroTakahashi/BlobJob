@@ -8,6 +8,10 @@ class Blob : private QOpenGLFunctions
 {
 public:
     Blob(double x, double y);
+
+    double getX() {return position.x();};
+    double getY() {return position.y();};
+    QVector2D getPosition() {return position;};
 protected:
     QVector2D position;
     QVector3D color;

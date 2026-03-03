@@ -121,3 +121,16 @@ void ShaderProgram::setFloat(const std::string& name, float value)
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 }
+
+void ShaderProgram::setMatrix4(const std::string& name, QMatrix4x4 value){
+    if(m_initialized) {
+        const GLfloat* matData = value.constData();
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, matData);
+    }
+}
+
+void ShaderProgram::setVec4(const std::string& name, QVector4D value){
+    if(m_initialized){
+        glUniform4f(glGetUniformLocation(ID, name.c_str()), value.x(),value.y(),value.z(),value.w());
+    }
+}

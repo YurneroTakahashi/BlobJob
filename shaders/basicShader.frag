@@ -2,7 +2,9 @@
 out vec4 FragColor;
 in vec2 TexCoord;
 in vec3 glPos;
+uniform vec4 ourColor;
 void main()
 {
-    FragColor = vec4(glPos,1.0);
+    FragColor = ourColor;
+
 }

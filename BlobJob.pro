@@ -21,7 +21,7 @@ HEADERS += \
     include/gamewidget.h \
     include/mainwindow.h \
     include/shaderprogram.h \
-    source/camera.h
+    include/camera.h
 
 FORMS += \
     mainwindow.ui
