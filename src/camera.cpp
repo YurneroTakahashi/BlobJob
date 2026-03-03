@@ -24,10 +24,10 @@ void Camera::move(float dx, float dy){
 }
 
 void Camera::zoomIn(float factor){
-    m_zoom+=factor/100.0f;
-    m_zoom=std::min(m_zoom, 3.0f);
+    m_zoom+=factor/50.0f;
+    m_zoom=std::min(m_zoom, 1.5f);
 }
 void Camera::zoomOut(float factor){
-    m_zoom-=factor/100.0f;
+    m_zoom-=factor/50.0f;
     m_zoom=std::max(m_zoom,0.2f);
 }

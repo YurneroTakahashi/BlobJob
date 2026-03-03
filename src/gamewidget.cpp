@@ -23,19 +23,24 @@ void gameWidget::initializeGL(){
                       "C:/Users/Yurnero/QT/BlobJob/shaders/basicShader.frag");
     initializeOpenGLFunctions();
 
-    float vertices[] = {
-        // positions         // texture coords
-        0.5f,  0.5f, 0.0f,   1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.0f,   1.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f    // top left
-    };
 
 
-    GLuint indices[] = {
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
-    };
+    std::vector<float> vertices;
+    vertices.push_back(0.0f); vertices.push_back(0.0f); vertices.push_back(0.0f);
+    vertices.push_back(0.5f); vertices.push_back(0.5f);
+
+    const int segments = 100;
+    for(int i = 0;i <= segments;i++){
+        float angle = 2.0f * M_PI * i / segments;
+        float x = cos(angle) * 0.5;
+        float y = sin(angle) * 0.5;
+
+        vertices.push_back(x); vertices.push_back(y); vertices.push_back(0.0f);
+        vertices.push_back(x+0.5); vertices.push_back(y+0.5);
+    }
+
+
+    m_vertexCount = vertices.size() / 5;
 
 
     //buffer initialization
@@ -44,12 +49,8 @@ void gameWidget::initializeGL(){
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
@@ -66,7 +67,7 @@ void gameWidget::initializeGL(){
 void gameWidget::resizeGL(int w,int h){
     glViewport(0, 0, w, h);
     projection.setToIdentity();
-    projection.ortho(0, w, h, 0, -1, 1);
+    projection.ortho(-width()/2, width()/2, -height()/2, height()/2, -1, 1);
 
 }
 void gameWidget::paintGL(){
@@ -94,7 +95,7 @@ void gameWidget::paintGL(){
         ourShader.setMatrix4("model", modelMatrix);
 
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, m_vertexCount);
     }
     glBindVertexArray(0);
 
@@ -128,11 +129,11 @@ void gameWidget::keyPressEvent(QKeyEvent* event) {
     switch(event->key()) {
     case Qt::Key_W:
     case Qt::Key_Up:
-        camera.move(0, -moveSpeed);
+        camera.move(0, moveSpeed);
         break;
     case Qt::Key_S:
     case Qt::Key_Down:
-        camera.move(0, moveSpeed);
+        camera.move(0, -moveSpeed);
         break;
     case Qt::Key_A:
     case Qt::Key_Left:

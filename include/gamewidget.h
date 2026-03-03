@@ -18,6 +18,7 @@ public:
 protected:
 
     GLuint VAO,VBO,EBO;
+    GLuint m_vertexCount;
     std::vector<Blob> blobs;
     size_t playerIndex = 0;
     ShaderProgram ourShader;
