@@ -15,7 +15,7 @@ ShaderProgram::~ShaderProgram()
 bool ShaderProgram::compile(const char* vertexPath, const char* fragmentPath)
 {
     initializeOpenGLFunctions();
-
+    std::cout << std::filesystem::current_path() << std::endl;
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;

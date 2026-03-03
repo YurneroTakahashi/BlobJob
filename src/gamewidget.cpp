@@ -19,8 +19,8 @@ void gameWidget::initializeGL(){
     m_startTime = m_timer.elapsed();
 
 
-    ourShader.compile("C:/Users/Yurnero/QT/BlobJob/shaders/basicShader.vert",
-                      "C:/Users/Yurnero/QT/BlobJob/shaders/basicShader.frag");
+    ourShader.compile("../../../shaders/basicShader.vert",
+                      "../../../shaders/basicShader.frag");
     initializeOpenGLFunctions();
 
 

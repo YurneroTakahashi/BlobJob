@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include <QMatrix4x4>
 class ShaderProgram : protected QOpenGLFunctions
 {
