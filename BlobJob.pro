@@ -32,5 +32,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    shaders/arrowShader.frag \
+    shaders/arrowShader.vert \
     shaders/basicShader.frag \
-    shaders/basicShader.vert
+    shaders/basicShader.vert \
+    shaders/pointShader.frag \
+    shaders/pointShader.vert
