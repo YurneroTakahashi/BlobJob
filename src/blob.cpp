@@ -37,7 +37,7 @@ std::vector<float> Blob::getVertexData(){
 void Blob::applyHit(QPointF direction, float power){
     QVector2D hitForce(direction);
     hitForce.normalize();
-    hitForce*=power*200;
+    hitForce*=power*3000;
     velocity += hitForce/mass;
     qDebug() << "HIT APPLIED: " << power << Qt::endl;
 }
@@ -71,51 +71,40 @@ void Blob::updatePointsPosition() {
 
 bool Blob::checkCollision(Blob& other) {
     QVector2D delta = other.position - position;
-    float distance = delta.length();
-    float minDistance = radius;
 
-    return distance < minDistance;
+    return delta.length() < radius;
 }
 
 void Blob::resolveCollision(Blob& other) {
     QVector2D delta = other.position - position;
     float distance = delta.length();
     float minDistance = radius;
-
-    // Добавим небольшой буфер, чтобы избежать множественных столкновений
     float epsilon = 0.1f;
 
     if (distance < minDistance - epsilon && distance > 0) {
         QVector2D normal = delta / distance;
 
-        // Разделяем шары
         float overlap = minDistance - distance;
         QVector2D correction = normal * (overlap * 0.5f);
 
         position -= correction;
         other.position += correction;
 
-        // Относительная скорость
         QVector2D relVelocity = other.velocity - velocity;
         float velAlongNormal = QVector2D::dotProduct(relVelocity, normal);
 
-        // Если шары уже удаляются, не обрабатываем
         if (velAlongNormal > 0) return;
 
-        // Коэффициент восстановления (меньше = менее упругий удар)
-        float restitution = 0.5f; // Уменьшил с 0.8 до 0.5
+        float restitution = 0.5f;
 
-        // Импульс
         float impulseScalar = -(1 + restitution) * velAlongNormal;
         impulseScalar /= (1.0f / mass + 1.0f / other.mass);
 
         QVector2D impulse = normal * impulseScalar;
 
-        // Применяем импульс
         velocity -= impulse / mass;
         other.velocity += impulse / other.mass;
 
-        // Небольшое трение при столкновении
         velocity *= 0.95f;
         other.velocity *= 0.95f;
 

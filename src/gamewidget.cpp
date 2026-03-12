@@ -73,17 +73,15 @@ void gameWidget::initializeGL(){
     std::uniform_real_distribution<float> posXDist(-width()/2 + 100, width()/2 - 100);
     std::uniform_real_distribution<float> posYDist(-height()/2 + 100, height()/2 - 100);
 
-    // Игрок
     Blob player(0.0, 0.0);
     blobs.push_back(player);
 
-    // Много случайных шаров
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 0; ++i) {
         Blob bot(posXDist(gen), posYDist(gen));
-        /*bot.setVelocity(QVector2D(
+        bot.setVelocity(QVector2D(
             (rand() % 600) - 300,
             (rand() % 600) - 300
-            ));*/
+            ));
         blobs.push_back(bot);
     }
 
@@ -106,9 +104,7 @@ void gameWidget::paintGL(){
 
     glBindVertexArray(VAO);
 
-    if (isDragging) {
-        drawArrow(startPoint, currentPoint, blobs[playerIndex]);
-    }
+
 
 
 
@@ -121,7 +117,7 @@ void gameWidget::paintGL(){
         qint64 seconds = m_timer.elapsed();
         float timeValue = seconds / 700.0f;
         ourShader.setVec4("ourColor", QVector4D((sin(timeValue)/2.0f)+0.5f,(sin(timeValue+2.0)/2.0)+0.5,(sin(timeValue+4.0)/2.0)+0.5, 1.0));
-        std::vector<float> vertices = blob.getVertexData(); // только xy(й)
+        std::vector<float> vertices = blob.getVertexData();
         GLuint vbo;
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -135,30 +131,29 @@ void gameWidget::paintGL(){
         ourShader.setMatrix4("model", modelMatrix);
 
         glDrawArrays(GL_TRIANGLE_FAN, 0, vertices.size() / 2);
-        //debugRenderVertices(vertices, viewMatrix, modelMatrix);
+        debugRenderVertices(vertices, viewMatrix, modelMatrix);
 
         glDeleteBuffers(1, &vbo);
+    }
+    if (isDragging) {
+        drawArrow(startPoint, currentPoint, blobs[playerIndex]);
     }
     glBindVertexArray(0);
 }
 
 void gameWidget::updateSpatialGrid() {
-    // Очищаем сетку
     for (auto& col : spatialGrid) {
         for (auto& cell : col) {
             cell.clear();
         }
     }
 
-    // Заполняем сетку шарами
     for (auto& blob : blobs) {
         QVector2D pos = blob.getPosition();
 
-        // Преобразуем мировые координаты в индексы сетки
         int gridX = static_cast<int>((pos.x() + width()/2) / GRID_SIZE);
         int gridY = static_cast<int>((pos.y() + height()/2) / GRID_SIZE);
 
-        // Проверяем, что индексы в пределах сетки
         if (gridX >= 0 && gridX < static_cast<int>(spatialGrid.size()) &&
             gridY >= 0 && gridY < static_cast<int>(spatialGrid[0].size())) {
             spatialGrid[gridX][gridY].push_back(&blob);
@@ -169,15 +164,12 @@ void gameWidget::updateSpatialGrid() {
 
 
 void gameWidget::handleCollisions() {
-    // Обновляем пространственную сетку
     updateSpatialGrid();
 
-    // Проверяем столкновения только между шарами в соседних ячейках
     for (int gx = 0; gx < static_cast<int>(spatialGrid.size()); ++gx) {
         for (int gy = 0; gy < static_cast<int>(spatialGrid[0].size()); ++gy) {
             auto& currentCell = spatialGrid[gx][gy];
 
-            // Проверка столкновений внутри текущей ячейки
             for (size_t i = 0; i < currentCell.size(); ++i) {
                 for (size_t j = i + 1; j < currentCell.size(); ++j) {
                     if (currentCell[i]->checkCollision(*currentCell[j])) {
@@ -185,8 +177,6 @@ void gameWidget::handleCollisions() {
                     }
                 }
             }
-
-            // Проверка с соседними ячейками
             for (int dx = -1; dx <= 1; ++dx) {
                 for (int dy = -1; dy <= 1; ++dy) {
                     if (dx == 0 && dy == 0) continue;
@@ -199,7 +189,7 @@ void gameWidget::handleCollisions() {
 
                         auto& neighborCell = spatialGrid[ngx][ngy];
 
-                        // Проверяем столкновения между шарами из текущей и соседней ячейки
+
                         for (auto* ball1 : currentCell) {
                             for (auto* ball2 : neighborCell) {
                                 if (ball1 != ball2 && ball1->checkCollision(*ball2)) {
@@ -216,26 +206,19 @@ void gameWidget::handleCollisions() {
 
 
 void gameWidget::drawArrow(QPointF start, QPointF end, Blob& player) {
-    // Получаем позицию игрока в мировых координатах
     float playerX = player.getX();
     float playerY = player.getY();
 
-    // Конвертируем начальную и конечную точки в мировые координаты
     QPointF worldStart = screenToWorld(start);
     QPointF worldEnd = screenToWorld(end);
 
-    // Вычисляем вектор направления от начальной точки к текущей
     float dirX = worldEnd.x() - worldStart.x();
     float dirY = worldEnd.y() - worldStart.y();
 
-    // Вычисляем длину (силу удара)
     float length = sqrt(dirX * dirX + dirY * dirY);
 
-    // Ограничиваем максимальную длину
     float maxLength = 300.0f;
     float limitedLength = qMin(length, maxLength);
-
-    // Направление удара (нормализованное)
     float normDirX = 0;
     float normDirY = 0;
     if (length > 0) {
@@ -243,25 +226,23 @@ void gameWidget::drawArrow(QPointF start, QPointF end, Blob& player) {
         normDirY = dirY / length;
     }
 
-    // Стрелка начинается от позиции игрока
     float arrowStartX = playerX;
     float arrowStartY = playerY;
 
-    // Конец стрелки - позиция игрока + нормализованное направление * ограниченную длину
-    float arrowEndX = playerX + normDirX * limitedLength;
-    float arrowEndY = playerY + normDirY * limitedLength;
+    float arrowEndX = playerX + normDirX * (limitedLength - 3.0f);
+    float arrowEndY = playerY + normDirY * (limitedLength - 3.0f);
 
-    // Вершины для линии
+    qDebug() << "Player at:" << playerX << playerY;
+    qDebug() << "Arrow from:" << arrowStartX << arrowStartY << "to:" << arrowEndX << arrowEndY;
     std::vector<float> lineVertices = {
-        arrowStartX, arrowStartY,
-        arrowEndX, arrowEndY
+        arrowStartX, arrowStartY, 1.0f,
+        arrowEndX * 0.94f, arrowEndY * 0.94f, 1.0f
     };
 
     arrowShader.use();
 
     QMatrix4x4 modelMatrix;
-    modelMatrix.setToIdentity();
-
+    modelMatrix.translate(playerX, playerY, 0.0f);
     arrowShader.setMatrix4("projection", projection);
     arrowShader.setMatrix4("view", camera.getViewMatrix());
     arrowShader.setMatrix4("model", modelMatrix);
@@ -272,20 +253,18 @@ void gameWidget::drawArrow(QPointF start, QPointF end, Blob& player) {
     glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * sizeof(float),
                  lineVertices.data(), GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
     glEnableVertexAttribArray(0);
 
     glLineWidth(15.0f);
 
-    // Цвет от зеленого (слабо) до красного (сильно)
     float power = limitedLength / maxLength;
     arrowShader.setVec4("ourColor", QVector4D(power, 1.0f - power, 0.0f, 1.0f));
 
-    glDrawArrays(GL_LINES, 0, 2);
+    glDrawArrays(GL_LINES, 0, 3);
 
-    // Рисуем наконечник стрелки
     if (limitedLength > 20.0f) {
-        drawArrowhead(arrowStartX, arrowStartY, arrowEndX, arrowEndY);
+        drawArrowhead(arrowStartX, arrowStartY, playerX + normDirX * limitedLength, playerY + normDirY * limitedLength);
     }
 
     glDisableVertexAttribArray(0);
@@ -294,22 +273,17 @@ void gameWidget::drawArrow(QPointF start, QPointF end, Blob& player) {
     ourShader.use();
 }
 void gameWidget::drawArrowhead(float startX, float startY, float endX, float endY) {
-    // Вычисляем угол направления стрелки
     float angle = atan2(endY - startY, endX - startX);
 
-    // Размер наконечника (зависит от длины стрелки)
     float arrowSize = 25.0f;
-    float arrowAngle = M_PI / 6.0f; // 30 градусов
+    float arrowAngle = M_PI / 6.0f;
 
-    // Вершины наконечника (треугольник)
-    float x1 = endX; // острие наконечника
+    float x1 = endX;
     float y1 = endY;
 
-    // Левое "крыло"
     float x2 = endX - arrowSize * cos(angle - arrowAngle);
     float y2 = endY - arrowSize * sin(angle - arrowAngle);
 
-    // Правое "крыло"
     float x3 = endX - arrowSize * cos(angle + arrowAngle);
     float y3 = endY - arrowSize * sin(angle + arrowAngle);
 
@@ -322,13 +296,12 @@ void gameWidget::drawArrowhead(float startX, float startY, float endX, float end
     arrowShader.use();
 
     QMatrix4x4 modelMatrix;
-    modelMatrix.setToIdentity();
+    modelMatrix.translate(blobs[playerIndex].getX(), blobs[playerIndex].getY(), 0.0f);
 
     arrowShader.setMatrix4("projection", projection);
     arrowShader.setMatrix4("view", camera.getViewMatrix());
     arrowShader.setMatrix4("model", modelMatrix);
 
-    // Белый цвет для наконечника
     arrowShader.setVec4("ourColor", QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
 
     GLuint arrowVBO;
@@ -394,10 +367,9 @@ void gameWidget::updateGame() {
         blob.checkBoundaryCollision(width(), height());
     }
 
-    // ПОТОМ обрабатываем столкновения
     handleCollisions();
 
-    update(); // Запрашиваем перерисовку
+    update();
 }
 
 
@@ -520,22 +492,17 @@ void gameWidget::mouseMoveEvent(QMouseEvent *event){
 
 void gameWidget::mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton && isDragging) {
-        // Получаем позицию игрока в мировых координатах
         float playerX = blobs[playerIndex].getX();
         float playerY = blobs[playerIndex].getY();
 
-        // Конвертируем начальную и конечную точки в мировые координаты
         QPointF worldStart = screenToWorld(startPoint);
         QPointF worldEnd = screenToWorld(event->position());
 
-        // Вычисляем вектор от начальной точки к конечной (направление удара)
         QPointF direction = worldEnd - worldStart;
 
-        // Вычисляем длину вектора
         float distance = sqrt(direction.x() * direction.x() +
                               direction.y() * direction.y());
 
-        // Нормализуем силу (0.0 - 1.0)
         float maxLength = 300.0f;
         float power = qMin(distance / maxLength, 1.0f);
 
@@ -546,7 +513,6 @@ void gameWidget::mouseReleaseEvent(QMouseEvent *event) {
                  << "distance =" << distance
                  << "power =" << power;
 
-        // Применяем удар если есть значимое направление
         if (distance > 10.0f) {
             blobs[playerIndex].applyHit(direction, power);
         }

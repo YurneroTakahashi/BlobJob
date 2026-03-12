@@ -11,11 +11,15 @@ public:
 
     QVector2D getCenter() const { return position; }
 
-    double getX() {return position.x();};
-    double getY() {return position.y();};
-    QVector2D getPosition() {return position;};
+    double getX() {return position.x();}
+    double getY() {return position.y();}
+    double getRadius() {return radius;}
+    QVector2D getPosition() {return position;}
     QVector2D getVelocity() {return velocity;}
+
     std::vector<float> getVertexData();
+
+    void setVelocity(QVector2D vel) {velocity = vel;}
 
     void update(float dt);
     void applyHit(QPointF direction, float power);
